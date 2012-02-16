@@ -19,7 +19,6 @@
 */
 
 `include "inc.v"
-`define SCALAR_WIDTH (151-1) // the width for the scalar value
 
 /* point scalar multiplication on the elliptic curve $y^2=x^3-x+1$ over a Galois field GF(3^M)
  * whose irreducible polynomial is $x^97 + x^12 + 2$. */

@@ -208,7 +208,7 @@ endmodule
 
 /* out == in^3 mod p(x) */
 /* p(x) == x^97 + x^12 + 2 */
-module f3m_cubic(input [193:0] in, output [193:0] out);
+module f3m_cubic(input wire [193:0] in, output wire [193:0] out);
 wire [1:0] w0; f3_add a0(in[131:130], in[139:138], w0);
 wire [1:0] w1; f3_add a1(in[133:132], in[141:140], w1);
 wire [1:0] w2; f3_add a2(in[135:134], in[143:142], w2);
@@ -619,7 +619,7 @@ endmodule
 
 /* $C=A*(x^3) mod p(x)$ */
 /* p(x) == x^97 + x^12 + 2 */
-module func7(input [193:0] in, output [193:0] out);
+module func7(input wire [193:0] in, output wire [193:0] out);
     assign out[5:0] = in[193:188];
     assign out[23:6] = in[17:0];
     wire [1:0] w0;
