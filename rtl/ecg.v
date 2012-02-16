@@ -32,38 +32,34 @@ module point_scalar_mult(clk, reset, x1, y1, zero1, c, done, x3, y3, zero3);
     output reg [`WIDTH:0] x3, y3;
     output reg zero3;
     
-    reg [`WIDTH:0] x2, y2; reg zero2; // the result
-    reg [`WIDTH:0] x4, y4; wire zero4;
-    wire [`WIDTH:0] x5, y5; wire zero5;
-    reg [`SCALAR_WIDTH   : 0] k; // the scalar value
-    reg [`SCALAR_WIDTH+1 : 0] i; // the counter
+    reg [`WIDTH:0] x2, y2; reg zero2; // accumulator
+    reg [`WIDTH:0] x4, y4; reg zero4; // doubler
+    wire [`WIDTH:0] x5, y5; wire zero5; // the first input of the adder
+    wire [`WIDTH:0] x6, y6; wire zero6; // the second input of the adder
+    wire [`WIDTH:0] x7, y7; wire zero7; // the output of the adder
+    reg [`SCALAR_WIDTH : 0] k; // the scalar value
+    wire fin; // asserted if job done
     reg op;
-    wire p, p2, rst, done1;
+    wire p, p2, rst, done1, lastbit;
     
-    assign zero4 = (~op) ? zero2 : (k[`SCALAR_WIDTH]?zero1:1);
+    assign lastbit = k[0];
+    assign fin = (k == 0);
+    assign x5 = op ? x4 : x2;
+    assign y5 = op ? y4 : y2;
+    assign zero5 = op ? zero4 : zero2;
+    assign {x6,y6} = {x4,y4};
+    assign zero6 = ((~op)&(~lastbit)) ? 1 : zero4;
     assign rst   = reset | p2 ;
     
     point_add
-        ins1 (clk, rst, x2, y2, zero2, x4, y4, zero4, done1, x5, y5, zero5);
+        ins1 (clk, rst, x5, y5, zero5, x6, y6, zero6, done1, x7, y7, zero7);
     func6
         ins2 (clk, reset, done1, p),
         ins3 (clk, reset, p, p2);
-    
-    always @ (posedge clk)
-        if (reset) begin x4 <= 0; y4 <= 0; end
-        else 
-          begin
-            x4 <= (~op) ? x2 : (k[`SCALAR_WIDTH]?x1:0);
-            y4 <= (~op) ? y2 : (k[`SCALAR_WIDTH]?y1:0);
-          end
-
-    always @ (posedge clk)
-        if (reset) i <= 1;
-        else if ((op & p) | i[`SCALAR_WIDTH+1]) i <= i << 1;
 
     always @ (posedge clk)
         if (reset) k <= c;
-        else if (op & p) k <= k << 1;
+        else if (op & p) k <= k >> 1;
 
     always @ (posedge clk)
         if (reset) op <= 0;
@@ -71,12 +67,16 @@ module point_scalar_mult(clk, reset, x1, y1, zero1, c, done, x3, y3, zero3);
     
     always @ (posedge clk)
         if (reset)  begin x2 <= 0; y2 <= 0; zero2 <= 1; end
-        else if (p) begin x2 <= x5; y2 <= y5; zero2 <= zero5; end
+        else if ((~op) & p) begin {x2,y2,zero2} <= {x7,y7,zero7}; end
+    
+    always @ (posedge clk)
+        if (reset)  begin {x4,y4,zero4} <= {x1,y1,zero1}; end
+        else if (op & p) begin {x4,y4,zero4} <= {x7,y7,zero7}; end
     
     always @ (posedge clk)
         if (reset)  begin x3 <= 0; y3 <= 0; zero3 <= 1; done <= 0; end
-        else if (i[`SCALAR_WIDTH+1])
-          begin x3 <= x2; y3 <= y2; zero3 <= zero2; done <= 1; end
+        else if (fin)
+          begin {x3,y3,zero3} <= {x2,y2,zero2}; done <= 1; end
 endmodule
 
 /* add two points on the elliptic curve $y^2=x^3-x+1$ over a Galois field GF(3^M)
@@ -95,22 +95,15 @@ module point_add(clk, reset, x1, y1, zero1, x2, y2, zero2, done, x3, y3, zero3);
                     y3a, y3b, y3c,
                     ny2;
     wire zero3a,
-         use1,  // asserted if $ins9$ did the work
          done10, // asserted if $ins10$ finished
-         done11, 
+         done11;
+    reg  use1,  // asserted if $ins9$ did the work
          cond1,
          cond2,
          cond3,
          cond4,
          cond5;
-    
-    assign use1 = zero1 | zero2;
-    assign cond1 = (~use1) && cond2 && cond4; // asserted if $P1 == -P2$
-    assign cond2 = (x1 == x2);
-    assign cond3 = (y1 == y2);
-    assign cond4 = (y1 == ny2);
-    assign cond5 = (~use1) && cond2 && cond3; // asserted if $P1 == P2$
-    
+        
     f3m_neg 
         ins1 (y2, ny2); // ny2 == -y2
     func9
@@ -120,6 +113,26 @@ module point_add(clk, reset, x1, y1, zero1, x2, y2, zero2, done, x3, y3, zero3);
     func11
         ins11 (clk, reset, x1, y1, x2, y2, done11, x3c, y3c);
         
+    always @ (posedge clk)
+        if (reset)
+          begin
+            use1 <= 0;
+            cond1 <= 0;
+            cond2 <= 0;
+            cond3 <= 0;
+            cond4 <= 0;
+            cond5 <= 0;
+          end
+        else
+          begin
+            use1 <= zero1 | zero2;
+            cond1 <= (~use1) && cond2 && cond4; // asserted if $P1 == -P2$
+            cond2 <= (x1 == x2);
+            cond3 <= (y1 == y2);
+            cond4 <= (y1 == ny2);
+            cond5 <= (~use1) && cond2 && cond3; // asserted if $P1 == P2$
+          end
+    
     always @ (posedge clk)
         if (reset)
             zero3 <= 0;

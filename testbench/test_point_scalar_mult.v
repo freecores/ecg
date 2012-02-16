@@ -48,7 +48,7 @@ module test_point_scalar_mult;
         zero1 = 0;
         c = 0;
         go;
-        if (zero3 !== 1) begin $display("E"); $finish; end
+        if (zero3 !== 1) begin $display("E"); $finish; end else $display(":D");
 
         // if scalar value is one, then the result is the input point, test case 1
         x1 = 194'h2a4290286121261a82446a41200622024988295015114486;
@@ -59,7 +59,8 @@ module test_point_scalar_mult;
         if (zero3 !== 0 ||
             x3 !== 194'h2a4290286121261a82446a41200622024988295015114486 ||
             y3 !== 194'h16595a61040a8611209820112a1582a081a1a182264601252
-            ) begin $display("E"); $finish; end        
+            ) begin $display("E"); $finish; end 
+        else $display(":D");
 
         // if scalar value is one, then the result is the input point, test case 2
         x1 = 194'h2a4290286121261a82446a41200622024988295015114486;
@@ -68,6 +69,7 @@ module test_point_scalar_mult;
         c = 1;
         go;
         if (zero3 !== 1) begin $display("E"); $finish; end        
+        else $display(":D");
 
         // if scalar value is one thousand. test case 1
         x1 = 194'h126569286a9860859046680265109015266416aa984082610;
@@ -79,6 +81,7 @@ module test_point_scalar_mult;
             x3 !== 194'h221495405a9425682104a6a005a42a562564469158a962019 ||
             y3 !== 194'h1048569408a2846964811161095218005098aa06582419a46
             ) begin $display("E"); $finish; end        
+        else $display(":D");
         
         // if scalar value is one thousand. test case 2
         x1 = 194'h126569286a9860859046680265109015266416aa984082610;
@@ -87,14 +90,16 @@ module test_point_scalar_mult;
         c = 1000;
         go;
         if (zero3 !== 1) begin $display("E"); $finish; end        
+        else $display(":D");
 
-        // if scalar value is the order of the generator point, then the result is the inf point
+/*        // if scalar value is the order of the generator point, then the result is the inf point
         x1 = 194'h288162298554054820552a05426081a1842886a58916a6249;
         y1 = 194'h2895955069089214054596a189a4420556589054140941695;
         zero1 = 0;
         c = 152'd2726865189058261010774960798134976187171462721;
         go;
-        if (zero3 !== 1) begin $display("E"); $finish; end        
+        if (zero3 !== 1) begin $display("E"); $finish; end
+        else $display(":D");        */
         
         // good work, buddy
         $display("nice!");
