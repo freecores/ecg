@@ -18,8 +18,6 @@
     along with Foobar.  If not, see http://www.gnu.org/licenses/lgpl.txt
 */
 
-`default_nettype none
-
 // drop def & const here :D
 
 `define M     97          // M is the degree of the irreducible polynomial
