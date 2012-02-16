@@ -1,8 +1,81 @@
+/*
+    Copyright 2011, City University of Hong Kong
+    Author is Homer (Dongsheng) Xing.
+
+    This file is part of Elliptic Curve Group Core.
+
+    Elliptic Curve Group Core is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Elliptic Curve Group Core is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Elliptic Curve Group Core.  If not, see http://www.gnu.org/licenses/lgpl.txt
+*/
+
 `include "inc.v"
+`define SCALAR_WIDTH (151-1) // the width for the scalar value
+
+/* point scalar multiplication on the elliptic curve $y^2=x^3-x+1$ over a Galois field GF(3^M)
+ * whose irreducible polynomial is $x^97 + x^12 + 2$. */
+/* $P3(x3,y3) == c \cdot P1(x1,y1)$ */
+module point_scalar_mult(clk, reset, x1, y1, zero1, c, done, x3, y3, zero3);
+    input clk, reset;
+    input [`WIDTH:0] x1, y1;
+    input zero1;
+    input [`SCALAR_WIDTH:0] c;
+    output reg done;
+    output reg [`WIDTH:0] x3, y3;
+    output reg zero3;
+    
+    reg [`WIDTH:0] x2, y2; reg zero2; // the result
+    wire [`WIDTH:0] x4, y4; wire zero4;
+    wire [`WIDTH:0] x5, y5; wire zero5;
+    reg [`SCALAR_WIDTH   : 0] k; // the scalar value
+    reg [`SCALAR_WIDTH+1 : 0] i; // the counter
+    reg op;
+    wire p, p2, rst, done1;
+    
+    assign x4    = (~op) ? x2    : (k[`SCALAR_WIDTH]?x1:0);
+    assign y4    = (~op) ? y2    : (k[`SCALAR_WIDTH]?y1:0);
+    assign zero4 = (~op) ? zero2 : (k[`SCALAR_WIDTH]?zero1:1);
+    assign rst   = reset | p2 ;
+    
+    point_add
+        ins1 (clk, rst, x2, y2, zero2, x4, y4, zero4, done1, x5, y5, zero5);
+    func6
+        ins2 (clk, reset, done1, p),
+        ins3 (clk, reset, p, p2);
+    
+    always @ (posedge clk)
+        if (reset) i <= 1;
+        else if ((op & p) | i[`SCALAR_WIDTH+1]) i <= i << 1;
+
+    always @ (posedge clk)
+        if (reset) k <= c;
+        else if (op & p) k <= k << 1;
+
+    always @ (posedge clk)
+        if (reset) op <= 0;
+        else if (p) op <= ~op;
+    
+    always @ (posedge clk)
+        if (reset)  begin x2 <= 0; y2 <= 0; zero2 <= 1; end
+        else if (p) begin x2 <= x5; y2 <= y5; zero2 <= zero5; end
+    
+    always @ (posedge clk)
+        if (reset)  begin x3 <= 0; y3 <= 0; zero3 <= 1; done <= 0; end
+        else if (i[`SCALAR_WIDTH+1])
+          begin x3 <= x2; y3 <= y2; zero3 <= zero2; done <= 1; end
+endmodule
 
 /* add two points on the elliptic curve $y^2=x^3-x+1$ over a Galois field GF(3^M)
  * whose irreducible polynomial is $x^97 + x^12 + 2$. */
-
 /* $P3(x3,y3) == P1 + P2$ for any points $P1(x1,y1),P2(x2,y2)$ */
 module point_add(clk, reset, x1, y1, zero1, x2, y2, zero2, done, x3, y3, zero3);
     input clk, reset;
