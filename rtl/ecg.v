@@ -33,15 +33,13 @@ module point_scalar_mult(clk, reset, x1, y1, zero1, c, done, x3, y3, zero3);
     output reg zero3;
     
     reg [`WIDTH:0] x2, y2; reg zero2; // the result
-    wire [`WIDTH:0] x4, y4; wire zero4;
+    reg [`WIDTH:0] x4, y4; wire zero4;
     wire [`WIDTH:0] x5, y5; wire zero5;
     reg [`SCALAR_WIDTH   : 0] k; // the scalar value
     reg [`SCALAR_WIDTH+1 : 0] i; // the counter
     reg op;
     wire p, p2, rst, done1;
     
-    assign x4    = (~op) ? x2    : (k[`SCALAR_WIDTH]?x1:0);
-    assign y4    = (~op) ? y2    : (k[`SCALAR_WIDTH]?y1:0);
     assign zero4 = (~op) ? zero2 : (k[`SCALAR_WIDTH]?zero1:1);
     assign rst   = reset | p2 ;
     
@@ -51,6 +49,14 @@ module point_scalar_mult(clk, reset, x1, y1, zero1, c, done, x3, y3, zero3);
         ins2 (clk, reset, done1, p),
         ins3 (clk, reset, p, p2);
     
+    always @ (posedge clk)
+        if (reset) begin x4 <= 0; y4 <= 0; end
+        else 
+          begin
+            x4 <= (~op) ? x2 : (k[`SCALAR_WIDTH]?x1:0);
+            y4 <= (~op) ? y2 : (k[`SCALAR_WIDTH]?y1:0);
+          end
+
     always @ (posedge clk)
         if (reset) i <= 1;
         else if ((op & p) | i[`SCALAR_WIDTH+1]) i <= i << 1;
