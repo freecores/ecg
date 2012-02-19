@@ -92,14 +92,14 @@ module test_point_scalar_mult;
         if (zero3 !== 1) begin $display("E"); $finish; end        
         else $display(":D");
 
-/*        // if scalar value is the order of the generator point, then the result is the inf point
+        // if scalar value is the order of the generator point, then the result is the inf point
         x1 = 194'h288162298554054820552a05426081a1842886a58916a6249;
         y1 = 194'h2895955069089214054596a189a4420556589054140941695;
         zero1 = 0;
         c = 152'd2726865189058261010774960798134976187171462721;
         go;
         if (zero3 !== 1) begin $display("E"); $finish; end
-        else $display(":D");        */
+        else $display(":D");
         
         // good work, buddy
         $display("nice!");
