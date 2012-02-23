@@ -15,7 +15,7 @@
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Foobar.  If not, see http://www.gnu.org/licenses/lgpl.txt
+    along with Tate Bilinear Pairing Core.  If not, see http://www.gnu.org/licenses/lgpl.txt
 */
 
 // fun.v: Have you got fun reading the code ?
