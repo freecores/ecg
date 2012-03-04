@@ -1,6 +1,6 @@
 /*
     Copyright 2011, City University of Hong Kong
-    Author is Homer (Dongsheng) Xing.
+    Author is Homer (Dongsheng) Hsing.
 
     This file is part of Tate Bilinear Pairing Core.
 
